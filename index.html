@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grimorio Decodificador</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body { 
+    font-family: 'Courier New', monospace; 
+    background-color: #3a0a5e;
+    background-image: url('fondo.gif'); /* Tu GIF en mosaico */
+    background-repeat: repeat; 
+    background-size: auto;
+    color: #e0d0ff; 
+    padding: 10px; 
+    margin: 0; 
+    overflow-x: hidden; 
+    min-height: 100vh;
+  }
+  
+  .win-wicca { 
+    background: rgba(26, 11, 46, 0.92); 
+    border-top: 2px solid #d4af37; 
+    border-left: 2px solid #d4af37; 
+    border-right: 2px solid #05010a; 
+    border-bottom: 2px solid #05010a; 
+    padding: 12px; 
+    margin-bottom: 12px; 
+    box-shadow: 4px 4px 0px #05010a;
+    backdrop-filter: blur(2px);
+  }
+  
+  .rainbow { 
+    font-size: 20px; 
+    animation: mystic-color 3s infinite; 
+    font-weight: bold; 
+    word-wrap: break-word; 
+    min-height: 30px; 
+    line-height: 1.4;
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+  }
+  
+  @keyframes mystic-color { 
+    0%{color:#d4af37;} 25%{color:#ff79c6;} 50%{color:#bd93f9;} 75%{color:#8be9fd;} 100%{color:#d4af37;} 
+  }
+  
+  .box { 
+    display: inline-block; 
+    border: 1px solid #d4af37; 
+    padding: 6px 8px; 
+    margin: 3px; 
+    background: rgba(13, 2, 33, 0.85); 
+    color: #d4af37;
+    font-size: 14px; 
+    text-align: center;
+    box-shadow: 2px 2px 0 #05010a;
+  }
+  
+  input, textarea { 
+    width: 100%; 
+    padding: 10px; 
+    background: rgba(5, 1, 10, 0.9);
+    color: #e0d0ff;
+    border-top: 2px solid #05010a; 
+    border-left: 2px solid #05010a; 
+    border-right: 2px solid #d4af37; 
+    border-bottom: 2px solid #d4af37; 
+    font-family: 'Courier New', monospace; 
+    font-size: 16px; 
+    margin-top: 5px; 
+  }
+  
+  textarea { height: 80px; resize: vertical; }
+  
+  button { 
+    background: #2d1b4e; 
+    color: #d4af37;
+    border-top: 2px solid #d4af37; 
+    border-left: 2px solid #d4af37; 
+    border-right: 2px solid #05010a; 
+    border-bottom: 2px solid #05010a; 
+    padding: 10px 12px; 
+    cursor: pointer; 
+    font-family: 'Courier New', monospace; 
+    font-size: 15px; 
+    margin-top: 8px; 
+    width: 100%; 
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  button:active { 
+    border-top: 2px solid #05010a; 
+    border-left: 2px solid #05010a; 
+    border-right: 2px solid #d4af37; 
+    border-bottom: 2px solid #d4af37; 
+    background: #1a0b2e;
+  }
+  
+  h2 { 
+    font-size: 22px; 
+    margin-top: 0; 
+    text-align: center;
+    color: #d4af37;
+    text-shadow: 2px 2px 0 #05010a;
+    letter-spacing: 2px;
+  }
+  
+  p { margin: 5px 0 8px 0; font-size: 15px; color: #bd93f9; font-weight: bold; }
+  
+  .gif-controls { display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  .gif-controls label { font-size: 13px; color: #d4af37; flex-basis: 100%; }
+  .gif-controls input[type=range] { flex: 1; min-width: 120px; margin-top: 0; padding: 0; accent-color: #d4af37; }
+  .gif-controls button { width: auto; padding: 8px 12px; margin-top: 0; flex: 1; }
+  
+  #gifGallery { 
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; padding: 8px; 
+    background: rgba(5, 1, 10, 0.9); 
+    border-top: 2px solid #05010a; border-left: 2px solid #05010a; 
+    border-right: 2px solid #d4af37; border-bottom: 2px solid #d4af37; 
+    min-height: 50px; 
+  }
+  
+  .gif-thumb { 
+    width: 48px; height: 48px; background: #1a0b2e; border: 1px solid #d4af37; 
+    cursor: pointer; padding: 2px; display: flex; align-items: center; justify-content: center; 
+  }
+  .gif-thumb img { width: 100%; height: 100%; object-fit: contain; }
+  
+  .floating-gif { position: absolute; cursor: grab; user-select: none; z-index: 10; touch-action: none; filter: drop-shadow(0 0 5px #d4af37); }
+  .floating-gif:active { cursor: grabbing; }
+  .floating-gif img { width: 100%; height: 100%; pointer-events: none; display: block; }
+  
+  .gif-remove { 
+    position: absolute; top: -10px; right: -10px; width: 28px; height: 28px; 
+    background: #2d1b4e; color: #ff79c6;
+    border-top: 2px solid #d4af37; border-left: 2px solid #d4af37; 
+    border-right: 2px solid #05010a; border-bottom: 2px solid #05010a; 
+    font-size: 16px; line-height: 24px; text-align: center; cursor: pointer; z-index: 11; font-weight: bold;
+  }
+  
+  .gif-resize { 
+    position: absolute; right: -10px; bottom: -10px; width: 28px; height: 28px; 
+    background: #2d1b4e; color: #d4af37;
+    border-top: 2px solid #d4af37; border-left: 2px solid #d4af37; 
+    border-right: 2px solid #05010a; border-bottom: 2px solid #05010a; 
+    cursor: nwse-resize; z-index: 12; touch-action: none; 
+  }
+  .gif-resize::after { content: '⤡'; font-size: 14px; display: block; text-align: center; line-height: 24px; }
+  
+  .range-info { font-size: 12px; color: #bd93f9; margin-top: 8px; font-style: italic; }
+  
+  @media (min-width: 768px) {
+    body { padding: 30px; }
+    .win-wicca { padding: 20px; margin-bottom: 20px; }
+    .rainbow { font-size: 28px; }
+    .box { font-size: 16px; padding: 8px 12px; }
+    h2 { font-size: 26px; }
+    button { width: auto; min-width: 150px; }
+    .gif-controls button { width: auto; }
+  }
+</style>
+</head>
+<body>
+  <h2>🔮 Decodificador de Iniciales 🌙</h2>
+  
+  <div class="win-wicca">
+    <p>📜 1. Cargar Grimorio (CSV: Inicial;Palabra)</p>
+    <input type="file" id="csv" accept=".csv">
+  </div>
+  
+  <div class="win-wicca">
+    <p>🌌 2. Runas Cargadas:</p>
+    <div id="iniciales"></div>
+  </div>
+  
+  <div class="win-wicca">
+    <p>🕯️ 3. Invocar por Número (automático):</p>
+    <input type="number" id="num" oninput="buscar()" placeholder="Escribe el número aquí..." inputmode="numeric">
+    <p id="resultado" style="font-size:22px; font-weight:bold; margin-top:15px; color:#d4af37; word-wrap: break-word; min-height: 30px;"></p>
+  </div>
+  
+  <div class="win-wicca">
+    <p>🜁 4. Escritura Mística (Hindi):</p>
+    <textarea id="hindi" oninput="actualizarHindi()" placeholder="Escribe aquí..."></textarea>
+    <button onclick="borrarHindi()"> Limpiar Energía</button>
+    <div id="out" class="rainbow"></div>
+  </div>
+
+  <div class="win-wicca">
+    <p>✨ Espíritus Visuales (GIFs):</p>
+    <input type="file" id="gifInput" accept="image/gif" multiple>
+    <div class="gif-controls">
+      <label>🜄 Tamaño de los espíritus:</label>
+      <input type="range" id="gifSize" min="30" max="400" value="100">
+      <button id="gifClearAll"> Disipar todos</button>
+    </div>
+    <div id="gifGallery"></div>
+    <div class="range-info">💡 Arrastra para mover · Esquina ⤡ para cambiar tamaño · ✕ para liberar.</div>
+  </div>
+
+  <script>
+    let datos = [];
+    let textoArcoiris = '';
+    
+    document.getElementById('csv').onchange = function(e) {
+      let reader = new FileReader();
+      reader.onload = function(ev) {
+        let lineas = ev.target.result.split('\n');
+        datos = [];
+        let html = '';
+        lineas.forEach((linea, i) => {
+          let partes = linea.split(';');
+          if(partes.length >= 2 && partes[0].trim() !== '') {
+            let num = i + 1;
+            datos.push({n: num, i: partes[0].trim(), p: partes[1].trim()});
+            html += '<span class="box"><b>'+partes[0].trim()+'</b><br><small>('+num+')</small></span>';
+          }
+        });
+        document.getElementById('iniciales').innerHTML = html || '<em style="color:#bd93f9">No se encontraron datos válidos.</em>';
+      };
+      reader.readAsText(e.target.files[0]);
+    };
+    
+    function buscar() {
+      let n = parseInt(document.getElementById('num').value);
+      let res = datos.find(d => d.n === n);
+      document.getElementById('resultado').innerText = res ? res.p : '';
+    }
+
+    function actualizarHindi() {
+      let texto = document.getElementById('hindi').value;
+      if (texto.length > textoArcoiris.length) {
+        textoArcoiris = texto;
+        document.getElementById('out').innerText = textoArcoiris;
+      }
+    }
+
+    function borrarHindi() {
+      textoArcoiris = '';
+      document.getElementById('hindi').value = '';
+      document.getElementById('out').innerText = '';
+    }
+
+    const gifInput = document.getElementById('gifInput');
+    const gifGallery = document.getElementById('gifGallery');
+    const gifSize = document.getElementById('gifSize');
+    const gifClearAll = document.getElementById('gifClearAll');
+    let currentGifSize = 100;
+
+    gifSize.addEventListener('input', e => {
+      currentGifSize = parseInt(e.target.value);
+      document.querySelectorAll('.floating-gif').forEach(g => {
+        g.style.width = currentGifSize + 'px';
+        g.style.height = currentGifSize + 'px';
+      });
+    });
+
+    gifClearAll.addEventListener('click', () => {
+      document.querySelectorAll('.floating-gif').forEach(g => g.remove());
+      gifGallery.innerHTML = '';
+    });
+
+    gifInput.addEventListener('change', e => {
+      const files = Array.from(e.target.files);
+      files.forEach(file => {
+        if (!file.type.startsWith('image/gif')) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const dataUrl = ev.target.result;
+          const thumb = document.createElement('div');
+          thumb.className = 'gif-thumb';
+          thumb.innerHTML = `<img src="${dataUrl}" alt="gif">`;
+          thumb.title = 'Toca para invocar otro';
+          thumb.addEventListener('click', () => spawnGif(dataUrl));
+          gifGallery.appendChild(thumb);
+          spawnGif(dataUrl);
+        };
+        reader.readAsDataURL(file);
+      });
+      gifInput.value = '';
+    });
+
+    function spawnGif(src) {
+      const size = currentGifSize;
+      const wrap = document.createElement('div');
+      wrap.className = 'floating-gif';
+      wrap.style.width = size + 'px';
+      wrap.style.height = size + 'px';
+      const margin = 20;
+      const maxX = Math.max(margin, window.innerWidth - size - margin);
+      const maxY = Math.max(margin, window.innerHeight - size - margin);
+      wrap.style.left = (Math.random() * maxX) + 'px';
+      wrap.style.top  = (Math.random() * maxY) + 'px';
+      wrap.innerHTML = `<img src="${src}" alt="gif"><div class="gif-remove">✕</div><div class="gif-resize"></div>`;
+      document.body.appendChild(wrap);
+
+      wrap.querySelector('.gif-remove').addEventListener('click', ev => {
+        ev.stopPropagation();
+        wrap.remove();
+      });
+
+      const handle = wrap.querySelector('.gif-resize');
+      handle.addEventListener('mousedown', ev => ev.stopPropagation());
+      handle.addEventListener('touchstart', ev => ev.stopPropagation(), { passive: false });
+
+      makeDraggable(wrap);
+      makeResizable(wrap, handle);
+    }
+
+    function makeDraggable(el) {
+      let startX, startY, origX, origY, dragging = false;
+      const onStart = (e) => {
+        const pt = e.touches ? e.touches[0] : e;
+        dragging = true;
+        startX = pt.clientX;
+        startY = pt.clientY;
+        origX = parseInt(el.style.left) || 0;
+        origY = parseInt(el.style.top) || 0;
+        el.style.zIndex = 100;
+        if (e.cancelable) e.preventDefault();
+      };
+      const onMove = (e) => {
+        if (!dragging) return;
+        const pt = e.touches ? e.touches[0] : e;
+        let nx = origX + (pt.clientX - startX);
+        let ny = origY + (pt.clientY - startY);
+        nx = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, nx));
+        ny = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, ny));
+        el.style.left = nx + 'px';
+        el.style.top  = ny + 'px';
+        if (e.cancelable) e.preventDefault();
+      };
+      const onEnd = () => {
+        if (!dragging) return;
+        dragging = false;
+        el.style.zIndex = 10;
+      };
+      el.addEventListener('mousedown', onStart);
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      el.addEventListener('touchstart', onStart, { passive: false });
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    }
+
+    function makeResizable(el, handle) {
+      let startX, startY, startW, startH, resizing = false;
+      const MIN = 30;
+      const MAX = Math.max(300, Math.min(window.innerWidth, window.innerHeight));
+      const onStart = (e) => {
+        const pt = e.touches ? e.touches[0] : e;
+        resizing = true;
+        startX = pt.clientX;
+        startY = pt.clientY;
+        startW = el.offsetWidth;
+        startH = el.offsetHeight;
+        el.style.zIndex = 100;
+        if (e.cancelable) e.preventDefault();
+      };
+      const onMove = (e) => {
+        if (!resizing) return;
+        const pt = e.touches ? e.touches[0] : e;
+        const dx = pt.clientX - startX;
+        const dy = pt.clientY - startY;
+        let delta = Math.max(dx, dy);
+        let newW = Math.max(MIN, Math.min(MAX, startW + delta));
+        let newH = Math.max(MIN, Math.min(MAX, startH + delta));
+        el.style.width  = newW + 'px';
+        el.style.height = newH + 'px';
+        if (e.cancelable) e.preventDefault();
+      };
+      const onEnd = () => {
+        if (!resizing) return;
+        resizing = false;
+        el.style.zIndex = 10;
+      };
+      handle.addEventListener('mousedown', onStart);
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      handle.addEventListener('touchstart', onStart, { passive: false });
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+    }
+    
+    window.addEventListener('resize', () => {
+      document.querySelectorAll('.floating-gif').forEach(g => {
+        let x = parseInt(g.style.left);
+        let y = parseInt(g.style.top);
+        g.style.left = Math.min(x, window.innerWidth - g.offsetWidth) + 'px';
+        g.style.top = Math.min(y, window.innerHeight - g.offsetHeight) + 'px';
+      });
+    });
+  </script>
+</body>
+</html>
